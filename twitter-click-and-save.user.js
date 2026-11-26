@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Twitter Click'n'Save
-// @version     1.31.0-2026.11.25
+// @version     1.31.1-2026.11.26
 // @namespace   gh.alttiri
 // @description Add buttons to download images and videos in Twitter, also does some other enhancements.
 // @match       https://twitter.com/*
@@ -258,7 +258,6 @@ function loadSettings() {
         addRequiredCSS: true,
 
         hideLoginPopup: false,
-        addBorder: true,
         cssRemoveMultimediaCarousel: true,
 
         strictTrackingProtectionFix: true,
@@ -310,7 +309,6 @@ function showSettings() {
       <div class="ujs-modal-settings" style="${modalSettingsStyle}">
           <fieldset>
               <legend>Optional</legend>
-              <label title="Makes the button more visible"><input type="checkbox" ${s.addBorder ? "checked" : ""} name="addBorder">Add a white border to the download button<br/></label>
               <label title="WARNING: It may broke the login page, but it works fine if you logged in and want to hide 'Messages'"><input type="checkbox" ${s.hideSignUpBottomBarAndMessages ? "checked" : ""} name="hideSignUpBottomBarAndMessages">Hide <strike><b>Sign Up Bar</b> and</strike> <b>Messages</b> and <b>Cookies</b> (in the bottom). <span title="WARNING: It may broke the login page!">(beta)</span><br/></label>
               <label><input type="checkbox" ${s.hideTrends ? "checked" : ""} name="hideTrends">Hide <b>Trends</b> (in the right column)*<br/></label>
               <label hidden><input type="checkbox" ${s.doNotPlayVideosAutomatically ? "checked" : ""} name="doNotPlayVideosAutomatically">Do <i>Not</i> Play Videos Automatically</b><br/></label>
@@ -475,9 +473,9 @@ function getLocalStorages() {
 // --- Twitter.Features --- //
 function hoistFeatures() {
     // ❌ image
-    const errorStyle   = `background-image: url("https://abs-0.twimg.com/emoji/v2/svg/274c.svg"); background-size: 1.5em; background-position: center; background-repeat: no-repeat;`;
+    const errorStyle   = `background-image: url("https://abs-0.twimg.com/emoji/v2/svg/274c.svg"); background-size: 16px; background-position: center; background-repeat: no-repeat;`;
     // ⚠  image
-    const warningStyle = `background-image: url("https://abs-0.twimg.com/emoji/v2/svg/26a0.svg"); background-size: 1.5em; background-position: center; background-repeat: no-repeat;`;
+    const warningStyle = `background-image: url("https://abs-0.twimg.com/emoji/v2/svg/26a0.svg"); background-size: 16px; background-position: center; background-repeat: no-repeat;`;
 
     class Btn {
         /**
@@ -1690,32 +1688,40 @@ function getUserScriptCSS() {
 }
 
 :root {
-    --ujs-shadow-1: linear-gradient(to top, rgba(0,0,0,0.15), rgba(0,0,0,0.05));
-    --ujs-shadow-2: linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0.05));
-    --ujs-shadow-3: linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.15));
-    --ujs-shadow-4: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.25));
-    --ujs-red:   #e0245e;
-    --ujs-blue:  #1da1f2;
-    --ujs-green: #4caf50;
-    --ujs-gray:  #c2cbd0;
-    --ujs-error: white;
+    --ujs-red:   rgba(224, 36, 94, 0.60);
+    --ujs-blue:  rgba(29, 161, 242, 0.60);
+    --ujs-green: rgba(64, 186, 96, 0.65);
+    --ujs-progress-color: #5ce68a;
+    --ujs-error: rgba(255, 255, 255, 0.82);
+    --ujs-size:  28px;
+    --ujs-radius: 7px;
 }
 
-.ujs-progress {
-  background-image: linear-gradient(to right, var(--ujs-green) var(--progress), transparent 0%);
-}
-
+.ujs-hover,
 .ujs-shadow {
-  background-image: var(--ujs-shadow-1);
+    display: none;
 }
-.ujs-btn-download:hover .ujs-hover {
-  background-image: var(--ujs-shadow-2);
+
+.ujs-btn-download .ujs-progress {
+    top: 2px;
+    left: 2px;
+    width: calc(var(--ujs-size) - 4px);
+    height: calc(var(--ujs-size) - 4px);
+    border: 0;
+    border-radius: calc(var(--ujs-radius) - 2px);
+    overflow: hidden;
+    pointer-events: none;
 }
-.ujs-btn-download.ujs-downloading .ujs-shadow {
-  background-image: var(--ujs-shadow-3);
-}
-.ujs-btn-download:active .ujs-shadow {
-  background-image: var(--ujs-shadow-4);
+.ujs-progress::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: var(--progress);
+    height: 2px;
+    border-radius: 1px;
+    background: var(--ujs-progress-color);
+    transition: width 0.12s linear;
 }
 
 .ujs-btn-download.ujs-downloaded.ujs-recently-downloaded {
@@ -1745,22 +1751,57 @@ div[aria-label="${labelText}"]:hover .ujs-btn-download,
   left: 0.5em;
   position: absolute;
   opacity: 0;
+  transition: opacity 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .ujs-btn-common {
-  width: 33px;
-  height: 33px;
-  border-radius: 0.3em;
+  box-sizing: border-box;
+  width: var(--ujs-size);
+  height: var(--ujs-size);
+  border-radius: var(--ujs-radius);
   top: 0;
   position: absolute;
-  border: 1px solid var(--ujs-gray);
-  ${settings.addBorder ? "border: 2px solid white;" : "border-color: var(--ujs-gray);"}
+  border: 0;
 }
+.ujs-btn-background {
+  border: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
+  transition: box-shadow 0.18s ease, filter 0.18s ease;
+}
+.ujs-btn-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%203v11'/%3E%3Cpath%20d='m7%2010%205%205%205-5'/%3E%3Cpath%20d='M5%2020h14'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 14px 14px;
+  opacity: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+.ujs-error .ujs-btn-background::after {
+  opacity: 0;
+}
+.ujs-btn-download:hover .ujs-btn-background {
+  filter: brightness(1.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+.ujs-btn-download:active .ujs-btn-background {
+  filter: brightness(0.94);
+}
+
 .ujs-not-downloaded .ujs-btn-background {
   background: var(--ujs-red);
 }
-
 .ujs-already-downloaded .ujs-btn-background {
   background: var(--ujs-blue);
+}
+.ujs-downloaded .ujs-btn-background {
+  background: var(--ujs-green);
+}
+.ujs-error .ujs-btn-background {
+  background: var(--ujs-error);
 }
 
 .ujs-btn-done {
@@ -1768,14 +1809,6 @@ div[aria-label="${labelText}"]:hover .ujs-btn-download,
 }
 .ujs-btn-error {
   box-shadow: 0 0 6px var(--ujs-red);
-}
-
-.ujs-downloaded .ujs-btn-background {
-  background: var(--ujs-green);
-}
-
-.ujs-error .ujs-btn-background {
-  background: var(--ujs-error);
 }
 
 .ujs-btn-error-text {
@@ -1815,26 +1848,36 @@ div[aria-label="${labelText}"]:hover .ujs-btn-download,
 
 .ujs-btn-download[data-is-multi-media] .ujs-dot {
     position: absolute;
-    width: 6px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.5) linear-gradient(to right, white var(--media-progress), transparent 0%);
-    border-radius: 25%;
+    width: 3px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    overflow: hidden;
 
-    bottom: 3px;
-    right: 3px;
+    bottom: 4px;
+    right: 4px;
+}
+.ujs-btn-download[data-is-multi-media] .ujs-dot:not(.ujs-back)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: var(--media-progress);
+    background: #fff;
+    border-radius: inherit;
 }
 .ujs-btn-download[data-is-multi-media] .ujs-dot.ujs-back {
-    bottom: 4px;
-    right: 1px;
+    bottom: 5px;
+    right: 2px;
+    border-radius: 0 1px 0 0;
 
     background: transparent;
-    border-top:   1px solid rgba(255, 255, 255, 0.5);
-    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    border-top:   1px solid rgba(255, 255, 255, 0.55);
+    border-right: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .ujs-btn-download[data-is-multi-media] .ujs-dot[style="--media-progress: 100%;"] + .ujs-back {
-    border-top:   1px solid white;
-    border-right: 1px solid white;
+    border-top:   1px solid #fff;
+    border-right: 1px solid #fff;
 }
 
 `;
